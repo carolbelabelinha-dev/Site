@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafio da Sobrevivência</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #151525;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 25px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            color: #a78bfa;
+        }
+
+        #pontuacao {
+            font-size: 22px;
+            margin: 15px;
+        }
+
+        #jogo {
+            width: 350px;
+            height: 500px;
+            background: #252540;
+            border: 3px solid #a78bfa;
+            border-radius: 12px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #jogador {
+            width: 40px;
+            height: 40px;
+            background: #a78bfa;
+            border-radius: 10px;
+            position: absolute;
+            bottom: 15px;
+            left: 155px;
+        }
+
+        .obstaculo {
+            width: 40px;
+            height: 40px;
+            background: #ff5c75;
+            border-radius: 8px;
+            position: absolute;
+            top: -40px;
+        }
+
+        button {
+            background: #a78bfa;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #8b5cf6;
+        }
+
+        p {
+            color: #c5c5d8;
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Desafio da Sobrevivência</h1>
+
+    <p>Desvie dos obstáculos e sobreviva!</p>
+
+    <div id="pontuacao">Pontuação: 0</div>
+
+    <div id="jogo">
+        <div id="jogador"></div>
+    </div>
+
+    <button onclick="iniciarJogo()">Começar jogo</button>
+
+    <p>Use as setas ← → para movimentar.</p>
+
+    <script>
+        const jogo = document.getElementById("jogo");
+        const jogador = document.getElementById("jogador");
+        const pontuacaoTexto = document.getElementById("pontuacao");
+
+        let posicao = 155;
+        let pontuacao = 0;
+        let velocidade = 3;
+        let ativo = false;
+        let obstaculos = [];
+        let intervalo;
+        let animacao;
+
+        document.addEventListener("keydown", function(event) {
+            if (!ativo) return;
+
+            if (event.key === "ArrowLeft" && posicao > 0) {
+                posicao -= 20;
+            }
+
+            if (event.key === "ArrowRight" && posicao < 310) {
+                posicao += 20;
+            }
+
+            jogador.style.left = posicao + "px";
+        });
+
+        function criarObstaculo() {
+            if (!ativo) return;
+
+            const obstaculo = document.createElement("div");
+            obstaculo.classList.add("obstaculo");
+
+            const x = Math.floor(Math.random() * 310);
+
+            obstaculo.style.left = x + "px";
+            obstaculo.style.top = "-40px";
+
+            jogo.appendChild(obstaculo);
+
+            obstaculos.push({
+                elemento: obstaculo,
+                x: x,
+                y: -40
+            });
+        }
+
+        function atualizarJogo() {
+            if (!ativo) return;
+
+            obstaculos.forEach((obs, index) => {
+                obs.y += velocidade;
+                obs.elemento.style.top = obs.y + "px";
+
+                // Verifica colisão
+                if (
+                    obs.y > 425 &&
+                    obs.y < 475 &&
+                    obs.x < posicao + 40 &&
+                    obs.x + 40 > posicao
+                ) {
+                    terminarJogo();
+                }
+
+                // Remove obstáculos que saíram da tela
+                if (obs.y > 500) {
+                    obs.elemento.remove();
+                    obstaculos.splice(index, 1);
+
+                    pontuacao++;
+                    pontuacaoTexto.textContent =
+                        "Pontuação: " + pontuacao;
+
+                    if (pontuacao % 5 === 0) {
+                        velocidade += 0.5;
+                    }
+                }
+            });
+
+            if (ativo) {
+                animacao = requestAnimationFrame(atualizarJogo);
+            }
+        }
+
+        function iniciarJogo() {
+            if (ativo) return;
+
+            obstaculos.forEach(obs => obs.elemento.remove());
+            obstaculos = [];
+
+            posicao = 155;
+            pontuacao = 0;
+            velocidade = 3;
+            ativo = true;
+
+            jogador.style.left = posicao + "px";
+            pontuacaoTexto.textContent = "Pontuação: 0";
+
+            clearInterval(intervalo);
+
+            intervalo = setInterval(criarObstaculo, 1000);
+
+            atualizarJogo();
+        }
+
+        function terminarJogo() {
+            ativo = false;
+
+            clearInterval(intervalo);
+            cancelAnimationFrame(animacao);
+
+            alert("Fim de jogo! Sua pontuação foi: " + pontuacao);
+        }
+    </script>
+
+</body>
+</html>
